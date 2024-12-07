@@ -1,0 +1,55 @@
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, classification_report
+
+# Sample dataset
+data = {
+    "text": [
+        "I love this product!",
+        "This is the worst service I've ever had.",
+        "Absolutely fantastic experience.",
+        "Not good, not bad, just average.",
+        "I will never use this again.",
+        "Highly recommend this to everyone.",
+        "Terrible and disappointing.",
+        "This made my day better!"
+    ],
+    "label": [1, 0, 1, 0, 0, 1, 0, 1]  # 1 = Positive, 0 = Negative
+}
+
+# Load data into a DataFrame
+df = pd.DataFrame(data)
+
+# Preprocessing: Split data into training and testing sets
+X = df['text']
+y = df['label']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Convert text to TF-IDF features
+vectorizer = TfidfVectorizer()
+X_train_tfidf = vectorizer.fit_transform(X_train)
+X_test_tfidf = vectorizer.transform(X_test)
+
+# Train an SVM model
+svm_model = SVC(kernel='linear', random_state=42)
+svm_model.fit(X_train_tfidf, y_train)
+
+# Make predictions
+y_pred = svm_model.predict(X_test_tfidf)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy * 100:.2f}%")
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# Predict on new data
+new_texts = ["This is an excellent service!", "I hated the food."]
+new_texts_tfidf = vectorizer.transform(new_texts)
+predictions = svm_model.predict(new_texts_tfidf)
+print("\nNew Predictions:")
+for text, label in zip(new_texts, predictions):
+    sentiment = "Positive" if label == 1 else "Negative"
+    print(f"'{text}' -> {sentiment}")
